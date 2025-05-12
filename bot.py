@@ -11,8 +11,13 @@ async def on_ready():
     print(f"Logged in as {bot.user}")
 
 @bot.slash_command(name="yo", description="hi for whoever is using this command")
-async def yo(ctx):
+async def yo(ctx, arg: str = None):
     author = ctx.author.name
-    await ctx.respond(f'yo {author}')
+    if arg:
+        await ctx.respond(f'yo {arg}')
+    else:
+        await ctx.respond(f'yo {author}')
+        
+    
 
 bot.run('MTM3MDk3MDg1MjUyMjMyODA3NA.GQ7Cuk.Nh2QVm7_sA_I4kDz0C74HLbqYw1yRVyHBmhsJY')
