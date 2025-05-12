@@ -10,9 +10,9 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 async def on_ready():
     print(f"Logged in as {bot.user}")
 
-@bot.command()
+@bot.slash_command(name="yo", description="hi for whoever is using this command")
 async def yo(ctx):
     author = ctx.author.name
-    await ctx.send(f'yo {author}')
+    await ctx.respond(f'yo {author}')
 
 bot.run('MTM3MDk3MDg1MjUyMjMyODA3NA.GQ7Cuk.Nh2QVm7_sA_I4kDz0C74HLbqYw1yRVyHBmhsJY')
