@@ -3,9 +3,8 @@ from discord.ext import commands
 from PIL import Image
 import io
 from discord import Option
+from cogs.ego import EgoCog
 from config import TOKEN
-
-
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -17,7 +16,10 @@ async def on_ready():
     print(f"Logged in as {bot.user}")
     await bot.sync_commands()
 
-@bot.slash_command(name="yo", description="hi for whoever is using this command")
+print(EgoCog)
+bot.add_cog(EgoCog(bot)) #Loading EgoCog
+
+@bot.slash_command(name="yo", description = "hi for whoever is using this command")
 async def yo(ctx, arg: str = None):
     author = ctx.author.name
     if arg:
@@ -25,7 +27,7 @@ async def yo(ctx, arg: str = None):
     else:
         await ctx.respond(f'yo {author}')
 
-@bot.slash_command(name = "convertimg", help = "Convert an image type to another")
+@bot.slash_command(name = "convertimg", description= "Convert an image type to another")
 async def convertImg(ctx, file: discord.Attachment, format = Option(str, "Choose output format", choices = ["png", "jpeg", "webp"])):
      img_bytes = await file.read()
      image = Image.open(io.BytesIO(img_bytes))
@@ -42,4 +44,4 @@ async def convertImg(ctx, file: discord.Attachment, format = Option(str, "Choose
      converted.seek(0)
      await ctx.respond(file = discord.File(converted, filename=f"converted.{format.lower()}"))
         
-bot.run(TOKEN)
+bot.run(TOKEN) #Bot Start
