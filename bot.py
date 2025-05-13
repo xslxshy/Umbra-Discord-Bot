@@ -3,6 +3,9 @@ from discord.ext import commands
 from PIL import Image
 import io
 from discord import Option
+from config import TOKEN
+
+
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -22,7 +25,7 @@ async def yo(ctx, arg: str = None):
     else:
         await ctx.respond(f'yo {author}')
 
-@bot.slash_command(name = "convertimg", description = "Convert an image type to another")
+@bot.slash_command(name = "convertimg", help = "Convert an image type to another")
 async def convertImg(ctx, file: discord.Attachment, format = Option(str, "Choose output format", choices = ["png", "jpeg", "webp"])):
      img_bytes = await file.read()
      image = Image.open(io.BytesIO(img_bytes))
@@ -38,6 +41,5 @@ async def convertImg(ctx, file: discord.Attachment, format = Option(str, "Choose
      image.save(converted, format=fmt)
      converted.seek(0)
      await ctx.respond(file = discord.File(converted, filename=f"converted.{format.lower()}"))
-
         
-bot.run('MTM3MDk3MDg1MjUyMjMyODA3NA.GQ7Cuk.Nh2QVm7_sA_I4kDz0C74HLbqYw1yRVyHBmhsJY')
+bot.run(TOKEN)
