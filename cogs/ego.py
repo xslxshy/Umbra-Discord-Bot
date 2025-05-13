@@ -14,9 +14,11 @@ def load_data():
         return json.load(f)
     
 def save_data(data):
+    #Open the file in write mode and sava data as formatted JSON
     with open (DATA_FILE, "w") as f:
         json.dump(data, f, indent = 4)
 
+#Cog class that will be added to the bot
 class EgoCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -27,8 +29,9 @@ class EgoCog(commands.Cog):
             await ctx.respond("You cant give ego to yourself", ephemeral = True)
             return
         
+        #Load data from file
         data = load_data()
-        author_id = str(ctx.author.id)
+        author_id = str(ctx.author.id) #Convert ID's to strings for JSON keys
         target_id = str(user.id)
 
         now = datetime.now()
@@ -36,12 +39,21 @@ class EgoCog(commands.Cog):
 
         if last_used:
             last_time = datetime.fromisoformat(last_used)
-            if now - last_time < timedelta(days = 1):
-                await ctx.respond("You already gave ego today. Try again tomorrow")
+            cooldown = timedelta(days = 1)
+            remaining = (last_time + cooldown) - now
+
+            if remaining.total_seconds() > 0:
+                hours, remaining = divmod(int(remaining.total_seconds()), 3600)
+                minutes, seconds = divmod(remaining, 60)
+                time_left = f"{hours}h {minutes}m {seconds}s"
+                await ctx.respond(f"You already gave **ego** today. Try again in **{time_left}**.", ephemeral = True)
                 return
             
+        #Increment ego count for target user
         data["egos"][target_id] = data["egos"].get(target_id, 0) + 1
+
+        #Update last_give time for the author
         data["last_give"][author_id] = now.isoformat()
         save_data(data)
 
-        await ctx.respond(f"You gave *+1* ego to {user.mention}")
+        await ctx.respond(f"You gave **+1** ego to {user.mention}")
