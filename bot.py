@@ -7,7 +7,7 @@ from discord import Option
 intents = discord.Intents.default()
 intents.message_content = True
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(command_prefix="/", intents=intents)
 
 @bot.event
 async def on_ready():
@@ -27,6 +27,13 @@ async def convertImg(ctx, file: discord.Attachment, format = Option(str, "Choose
      img_bytes = await file.read()
      image = Image.open(io.BytesIO(img_bytes))
      converted = io.BytesIO()
+     if format == "jpeg":
+         if image.mode == "RGBA":
+             background = Image.new("RGB", image.size, (255, 255, 255))
+             background.paste(image, mask=image.split()[3])
+             image = background
+         else:
+             image = image.convert("RGB")
      fmt = format.upper()
      image.save(converted, format=fmt)
      converted.seek(0)
