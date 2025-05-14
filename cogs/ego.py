@@ -37,6 +37,7 @@ class EgoCog(commands.Cog):
         now = datetime.now()
         last_used = data["last_give"].get(author_id)
 
+        #Cooldown Handler
         if last_used:
             last_time = datetime.fromisoformat(last_used)
             cooldown = timedelta(days = 1)
@@ -55,6 +56,25 @@ class EgoCog(commands.Cog):
         #Update last_give time for the author
         data["last_give"][author_id] = now.isoformat()
         save_data(data)
+
+        #Role Handler
+        ego_amount = data["egos"][target_id]
+        guild = ctx.guild
+        member = user
+
+        for role in member.roles:
+            if role.name.startswith("EGO:"):
+                await member.remove_roles(role)
+
+        new_role_name = f"EGO: {ego_amount} "
+        role = discord.utils.get(guild.roles, name = new_role_name)
+        if role is None:
+            role = await guild.create_role(
+                name = new_role_name,
+                colour = discord.Colour.from_rgb(1,1,1)
+                )
+
+        await member.add_roles(role)
 
         await ctx.respond(f"You gave **+1** ego to {user.mention}")
 
