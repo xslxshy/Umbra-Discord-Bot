@@ -1,9 +1,9 @@
 import discord
 from discord.ext import commands
-from discord import Option
 import json
 import os
 from datetime import datetime, timedelta
+from discord import Option
 
 DATA_FILE = "data/ego_data.json"
 
@@ -23,7 +23,7 @@ class EgoCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.slash_command(name = "ego", description = "Give 1 ego to someone")
+    @commands.slash_command(name = "ego", description = "Give **1 ego** to someone")
     async def ego(self, ctx, user: discord.Member):
         if user.id == ctx.author.id:
             await ctx.respond("You cant give ego to yourself", ephemeral = True)
@@ -57,3 +57,11 @@ class EgoCog(commands.Cog):
         save_data(data)
 
         await ctx.respond(f"You gave **+1** ego to {user.mention}")
+
+    @commands.slash_command(name="egocheck", description = "Check how much ego someone has")
+    async def egocheck(self, ctx, user: discord.Member = None):
+        data = load_data()
+        target = user or ctx.author
+        target_id = str(target.id)
+        ego = data["egos"].get(target_id, 0)
+        await ctx.respond(f"{target.mention} has **{ego} ego**")
