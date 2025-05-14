@@ -60,7 +60,7 @@ class ChallengeCog(commands.Cog):
         }
 
         #Creates the view with "Accept" and "Decline" buttons
-        view = ChallengeResponseView(self.bot, self.pending_challenges, opponent.id)
+        view = ChallengeResponseView(self.bot, self.pending_challenges, opponent.id, ctx.guild)
         try:
             #Sends DM to opponent
             await opponent.send(
@@ -73,11 +73,12 @@ class ChallengeCog(commands.Cog):
 
 #Class that defines "Accept" and "Decline" buttons
 class ChallengeResponseView(discord.ui.View):
-    def __init__(self, bot, pending_challenges, opponent_id):
+    def __init__(self, bot, pending_challenges, opponent_id, guild):
         super().__init__(timeout = 60) #60 seconds of time limit to accept or decline
         self.bot = bot
         self.pending_challenges = pending_challenges
         self.opponent_id = opponent_id
+        self.guild = guild
 
     #Accept challenge button
     @discord.ui.button(label = "Accept")
@@ -89,7 +90,32 @@ class ChallengeResponseView(discord.ui.View):
             await interaction.response.send_message("This challenge doesnt exist anymore", ephemeral = True)
             return
         
-        #TODO: Create private channel for challenge
+        #Create private channel for challenge
+        guild = self.guild
+        if guild is None:
+            await interaction.response.send_message("Erro: Servidor não encontrado.", ephemeral = True)
+            return
+
+        challenger = challenge["challenger"]
+        opponent = interaction.user
+
+        overwrites = {
+            guild.default_role: discord.PermissionOverwrite(view_channel = False),
+            challenger: discord.PermissionOverwrite(view_channel = True, send_messages = True),
+            opponent: discord.PermissionOverwrite(view_channel = True, send_messages = True),
+            guild.me: discord.PermissionOverwrite(view_channel = True, send_messages = True)
+        }
+
+        channel = await guild.create_text_channel(
+            f"challenge-{challenger.name}-vs-{opponent.name}",
+            overwrites = overwrites,
+            reason = "Temporary Challenge Channel"
+        )
+
+        await interaction.response.send_message("Challange Accepted. Channel Created", ephemeral = True)
+        await channel.send(
+            f"{challenger.mention} vs {opponent.mention} - **{challenge['game']}** betting **{challenge['bet']} EGO**"
+        )
 
     #Decline challenge button
     @discord.ui.button(label = "Decline")

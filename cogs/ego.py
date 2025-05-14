@@ -23,10 +23,10 @@ class EgoCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.slash_command(name = "ego", description = "Give 1 ego to someone")
+    @commands.slash_command(name = "ego", description = "Give **1 EGO** to someone")
     async def ego(self, ctx, user: discord.Member):
         if user.id == ctx.author.id:
-            await ctx.respond("You cant give ego to yourself", ephemeral = True)
+            await ctx.respond("You cant give **EGO** to yourself", ephemeral = True)
             return
         
         #Load data from file
@@ -47,7 +47,7 @@ class EgoCog(commands.Cog):
                 hours, remaining = divmod(int(remaining.total_seconds()), 3600)
                 minutes, seconds = divmod(remaining, 60)
                 time_left = f"{hours}h {minutes}m {seconds}s"
-                await ctx.respond(f"You already gave **ego** today. Try again in **{time_left}**.", ephemeral = True)
+                await ctx.respond(f"You already gave **EGO** today. Try again in **{time_left}**.", ephemeral = True)
                 return
             
         #Increment ego count for target user
@@ -76,7 +76,7 @@ class EgoCog(commands.Cog):
 
         await member.add_roles(role)
 
-        await ctx.respond(f"You gave **+1** ego to {user.mention}")
+        await ctx.respond(f"You gave **+1 EGO** to {user.mention}")
 
     @commands.slash_command(name="egocheck", description = "Check how much ego someone has")
     async def egocheck(self, ctx, user: discord.Member = None):
@@ -84,4 +84,4 @@ class EgoCog(commands.Cog):
         target = user or ctx.author
         target_id = str(target.id)
         ego = data["egos"].get(target_id, 0)
-        await ctx.respond(f"{target.mention} has **{ego} ego**")
+        await ctx.respond(f"{target.mention} has **{ego} EGO**")
