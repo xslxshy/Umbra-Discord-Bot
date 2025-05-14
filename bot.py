@@ -4,6 +4,7 @@ from PIL import Image
 import io
 from discord import Option
 from cogs.ego import EgoCog
+from cogs.challenge import ChallengeCog
 from config import TOKEN
 
 intents = discord.Intents.default()
@@ -16,8 +17,9 @@ async def on_ready():
     print(f"Logged in as {bot.user}")
     await bot.sync_commands()
 
-print(EgoCog)
 bot.add_cog(EgoCog(bot)) #Loading EgoCog
+
+bot.add_cog(ChallengeCog(bot)) #Loading ChallengeCog
 
 @bot.slash_command(name="yo", description = "hi for whoever is using this command")
 async def yo(ctx, arg: str = None):

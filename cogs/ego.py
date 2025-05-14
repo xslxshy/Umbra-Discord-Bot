@@ -23,7 +23,7 @@ class EgoCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.slash_command(name = "ego", description = "Give **1 ego** to someone")
+    @commands.slash_command(name = "ego", description = "Give 1 ego to someone")
     async def ego(self, ctx, user: discord.Member):
         if user.id == ctx.author.id:
             await ctx.respond("You cant give ego to yourself", ephemeral = True)
