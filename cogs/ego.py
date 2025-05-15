@@ -23,10 +23,10 @@ class EgoCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.slash_command(name = "ego", description = "Give **1 EGO** to someone")
+    @commands.slash_command(name = "ego", description = "Give **1 EGO** to someone.")
     async def ego(self, ctx, user: discord.Member):
         if user.id == ctx.author.id:
-            await ctx.respond("You cant give **EGO** to yourself", ephemeral = True)
+            await ctx.respond("You cant give **EGO** to yourself.", ephemeral = True)
             return
         
         #Load data from file
@@ -76,9 +76,9 @@ class EgoCog(commands.Cog):
 
         await member.add_roles(role)
 
-        await ctx.respond(f"You gave **+1 EGO** to {user.mention}")
+        await ctx.respond(f"You gave **+1 EGO** to {user.mention}.")
 
-    @commands.slash_command(name="egocheck", description = "Check how much ego someone has")
+    @commands.slash_command(name="egocheck", description = "Check how much ego someone has.")
     async def egocheck(self, ctx, user: discord.Member = None):
         data = load_data()
         target = user or ctx.author

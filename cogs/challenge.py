@@ -4,6 +4,12 @@ from discord import Option
 import json
 import os
 from datetime import datetime
+from games.rock_paper_scissors import RockPaperScissors
+
+GAMES = {
+    "rock_paper_scissors": RockPaperScissors()
+}
+
 
 DATA_FILE = "data/ego_data.json"
 
@@ -84,11 +90,25 @@ class ChallengeResponseView(discord.ui.View):
     @discord.ui.button(label = "Accept")
     async def accept(self, button, interaction):
         #Removes it from pending_challenges
-        challenge = self.pending_challenges.pop(self.opponent_id, None)
+        challenge = self.pending_challenges.get(self.opponent_id)
+
         if not challenge:
             #If challenge doesnt exists for whatever reason
-            await interaction.response.send_message("This challenge doesnt exist anymore", ephemeral = True)
+            await interaction.response.send_message("This challenge doesnt exist anymore.", ephemeral = True)
             return
+        
+        game_name = challenge["game"]
+        game = GAMES.get(game_name)
+
+        if not game:
+            await interaction.responde.send_message("Game not found", ephemeral = True)
+            return
+        
+        challenger = challenge["challenger"]
+        challenged = interaction.user
+        bet = challenge["bet"]
+
+        self.pending_challenges.pop(self.opponent_id, None)
         
         #Create private channel for challenge
         guild = self.guild
@@ -112,13 +132,14 @@ class ChallengeResponseView(discord.ui.View):
             reason = "Temporary Challenge Channel"
         )
 
-        await interaction.response.send_message("Challange Accepted. Channel Created", ephemeral = True)
+        await interaction.response.send_message(f"Challange Accepted. Channel created, check **{self.guild}** to play your game.", ephemeral = True)
         await channel.send(
-            f"{challenger.mention} vs {opponent.mention} - **{challenge['game']}** betting **{challenge['bet']} EGO**"
+            f"{challenger.mention} vs {opponent.mention} - **{challenge['game']}** betting **{challenge['bet']} EGO.**"
         )
+        await game.start(self.bot, channel, challenge["challenger"], interaction.user, challenge["bet"])
 
     #Decline challenge button
     @discord.ui.button(label = "Decline")
     async def decline(self, button, interaction):
         self.pending_challenges.pop(self.opponent_id, None)
-        await interaction.response.send_message("Challenge **declined.**", ephemeral = True)
+        await interaction.response.send_message("Challenge **declined**.", ephemeral = True)
