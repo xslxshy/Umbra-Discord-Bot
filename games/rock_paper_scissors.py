@@ -4,15 +4,17 @@ import asyncio
 from cogs.ego import load_data, save_data
 from .base_game import BaseGame
 
+emoji_map = {
+                "rock": "🪨",
+                "paper": "📄",
+                "scissors": "✂️"
+            }
+
 class RockPaperScissors(BaseGame):
     async def start(self, bot, channel, challenger, opponent, bet):
         #Creates RPSGame instance with respective players and bet
         game = RPSGame(bot, channel, challenger, opponent, bet)
         await game.run()
-
-        #Waits 15 seconds before deleting the channel
-        await asyncio.sleep(15)
-        await channel.delete()
 
 class RPSGame:
     def __init__(self, bot, channel, player1, player2, bet):
@@ -44,12 +46,6 @@ class RPSGame:
             p1 = self.players[p1_id]["member"]
             p2 = self.players[p2_id]["member"]
 
-            emoji_map = {
-                "rock": "🪨",
-                "paper": "📄",
-                "scissors": "✂️"
-            }
-
             if c1 is None and c2 is None:
                 await self.channel.send("Both players did not choose in time. Round Repeating")
                 await asyncio.sleep(2)
@@ -76,8 +72,8 @@ class RPSGame:
             choice2_text = f"🩸 {p2.mention} chose  **{c2.capitalize()}** {emoji_map.get(c2, '')}" if c2 else "**Nothing. ⁉️"
 
             await self.channel.send(
-                f"🕷️ {p1.mention} chose {choice1_text}\n"
-                f"🩸 {p2.mention} chose {choice2_text}"
+                f" {choice1_text}\n"
+                f" {choice2_text}"
             )
             
             if result == "draw":
@@ -113,6 +109,19 @@ class RPSGame:
         save_data(data)
 
         await self.channel.send(f"🏆 {winner.mention} won the match and got **{self.bet} EGO** 🏆")
+        #Shows rematch buttons
+        view = RematchView(self.bot, self.channel, self.players[winner_id]["member"], self.players[loser_id]["member"], self.bet)
+        await self.channel.send("🔄️ Do you want a rematch?", view = view)
+        await view.wait()
+
+        if view.rematch_started:
+            #Start a new game
+            game = RPSGame(self.bot, self.channel, self.players[winner_id]["member"], self.players[loser_id]["member"], self.bet)
+            await game.run()
+        else:
+            #Rematch not confirmed
+            await asyncio.sleep(5)
+            return await self.channel.delete()
 
     async def get_choices(self):
         #Creates button interface for players to chose
@@ -120,7 +129,7 @@ class RPSGame:
         await self.channel.send("Choose your action:", view = view)
         try:
             #Waits for both players to chose their action
-            await asyncio.wait_for(view.wait(), timeout = 30)
+            await asyncio.wait_for(view.wait(), timeout = 20)
         except asyncio.TimeoutError:
             pass
 
@@ -141,32 +150,63 @@ class RPSGame:
     
 class RPSView(View):
     def __init__(self, player_ids, choices):
-        super().__init__(timeout = 30)
+        super().__init__(timeout = 20)
         self.player_ids = player_ids
         self.choices = choices
         self.responded = set()
 
+    #Rock Button
     @discord.ui.button(label = "Rock 🪨", style = discord.ButtonStyle.secondary)
     async def rock(self, button, interaction):
         await self.register_choice(interaction, "rock")
 
+    #Paper Button
     @discord.ui.button(label = "Paper 📄", style = discord.ButtonStyle.primary)
     async def paper(self, button, interaction):
         await self.register_choice(interaction, "paper")
 
+    #Scissors Button
     @discord.ui.button(label = "Scissors ✂️", style = discord.ButtonStyle.danger)
     async def scissors(self, button, interaction):
         await self.register_choice(interaction, "scissors")
 
     async def register_choice(self, interaction, choice):
+        #Check if user is in choices (already made his action)
         if interaction.user.id in self.choices:
             await interaction.response.send_message("You already made your choice.", ephemeral = True)
             return
         
+        #Search for userID on choices
         self.choices[interaction.user.id] = choice
-        await interaction.response.send_message(f"You chose **{choice}**.", ephemeral = True)
+        await interaction.response.send_message(f"You chose **{choice.capitalize()}** {emoji_map.get(choice, '')}.", ephemeral = True)
 
         if len(self.choices) == 2:
             self.disable_all_items()
             await interaction.message.edit(view = self)
             self.stop()
+
+class RematchView(View):
+    def __init__(self, bot, channel, challenger, opponent, bet):
+        super().__init__(timeout = 15)
+        self.bot = bot
+        self.channel = channel
+        self.challenger = challenger
+        self.opponent = opponent
+        self.bet = bet
+        self.confirmed = set()
+        self.rematch_started = False
+
+    @discord.ui.button(label = "🔄️ Rematch", style = discord.ButtonStyle.success)
+    async def rematch(self, button: discord.ui.Button, interaction: discord.Interaction):
+        self.confirmed.add(interaction.user.id)
+        await interaction.response.send_message(f"{interaction.user.mention} **accepted** the **Rematch**.")
+        
+        if self.confirmed == {self.challenger.id, self.opponent.id}:
+            self.rematch_started = True
+            self.stop()
+
+    @discord.ui.button(label = "❌ Quit", style = discord.ButtonStyle.danger)
+    async def quit(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await self.channel.send("🚪 One of the players left. Game Ending...")
+        self.stop()
+

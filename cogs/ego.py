@@ -66,7 +66,7 @@ class EgoCog(commands.Cog):
             if role.name.startswith("EGO:"):
                 await member.remove_roles(role)
 
-        new_role_name = f"EGO: {ego_amount} "
+        new_role_name = f"EGO: {ego_amount} ⛓️"
         role = discord.utils.get(guild.roles, name = new_role_name)
         if role is None:
             role = await guild.create_role(
@@ -76,12 +76,12 @@ class EgoCog(commands.Cog):
 
         await member.add_roles(role)
 
-        await ctx.respond(f"You gave **+1 EGO** to {user.mention}.")
+        await ctx.respond(f"You gave **+1 EGO** ⛓️ to {user.mention}.")
 
-    @commands.slash_command(name="egocheck", description = "Check how much ego someone has.")
+    @commands.slash_command(name="egocheck", description = "Check how much ego someone has.", ephemeral = True)
     async def egocheck(self, ctx, user: discord.Member = None):
         data = load_data()
         target = user or ctx.author
         target_id = str(target.id)
         ego = data["egos"].get(target_id, 0)
-        await ctx.respond(f"{target.mention} has **{ego} EGO**")
+        await ctx.respond(f"{target.mention} has **{ego} EGO** ⛓️")
